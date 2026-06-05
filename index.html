@@ -538,7 +538,15 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  let entries = [];
+  let entries = JSON.parse(
+  localStorage.getItem('pulseEntries') || '[]'
+);
+function saveEntries() {
+  localStorage.setItem(
+    'pulseEntries',
+    JSON.stringify(entries)
+  );
+}
   let selectedService = '';
 
   function selectService(btn) {
@@ -573,15 +581,17 @@
     if (!price || price <= 0) { showToast('Enter a valid price', true); return; }
 
     const now = new Date();
-    entries.push({
-      id:      Date.now(),
-      service: svc,
-      price,
-      qty,
-      total:   price * qty,
-      time:    now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      date:    now.toLocaleDateString('en-GB')
-    });
+   entries.push({
+  id:      Date.now(),
+  service: svc,
+  price,
+  qty,
+  total:   price * qty,
+  time:    now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+  date:    now.toLocaleDateString('en-GB')
+});
+
+saveEntries();
 
     document.getElementById('priceInput').value = '';
     document.getElementById('qtyInput').value   = '1';
@@ -590,9 +600,10 @@
   }
 
   function deleteEntry(id) {
-    entries = entries.filter(e => e.id !== id);
-    renderList();
-  }
+  entries = entries.filter(e => e.id !== id);
+  saveEntries();
+  renderList();
+}
 
   function renderList() {
     const list  = document.getElementById('entryList');
@@ -701,22 +712,31 @@
     showToast('Exported! ' + grandTotal.toFixed(0) + ' LE total');
   }
 
-  function clearAll() {
-    if (!entries.length) return;
-    if (confirm('Clear all ' + entries.length + ' entries?')) {
-      entries = [];
-      renderList();
-      showToast('All entries cleared');
-    }
+ function clearAll() {
+  if (!entries.length) return;
+
+  if (confirm('Clear all ' + entries.length + ' entries?')) {
+    entries = [];
+    saveEntries();
+    renderList();
+    showToast('All entries cleared');
   }
+}
 
   // Allow Enter key in price/qty fields
-  document.addEventListener('DOMContentLoaded', () => {
-    ['priceInput', 'qtyInput', 'otherInput'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
-    });
+ document.addEventListener('DOMContentLoaded', () => {
+  ['priceInput', 'qtyInput', 'otherInput'].forEach(id => {
+    const el = document.getElementById(id);
+
+    if (el) {
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter') addEntry();
+      });
+    }
   });
+
+  renderList();
+});
 </script>
 </body>
 </html>
