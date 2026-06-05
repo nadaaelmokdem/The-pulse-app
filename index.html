@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Pulse — Workshop Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --green:        #1D9E75;
+      --green-dark:   #0F6E56;
+      --green-deep:   #085041;
+      --green-soft:   #E1F5EE;
+      --green-mid:    #9FE1CB44;
+
+      --bg:           #F7FAF9;
+      --surface:      #FFFFFF;
+      --surface-2:    #F0F5F3;
+      --border:       #D8E9E3;
+      --border-light: #EAF2EF;
+
+      --text-primary:   #1A2A24;
+      --text-secondary: #5C7A6F;
+      --text-muted:     #94B0A6;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+
+      --font: 'DM Sans', sans-serif;
+      --mono: 'DM Mono', monospace;
+
+      --shadow-sm: 0 1px 3px rgba(15,70,56,.06), 0 1px 2px rgba(15,70,56,.04);
+      --shadow-md: 0 4px 16px rgba(15,70,56,.08), 0 1px 4px rgba(15,70,56,.05);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { background: var(--bg); }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ── */
+    .app {
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 0 0 40px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border-light);
+      padding: 20px 24px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: var(--shadow-sm);
+    }
+    .brand {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.4px;
+    }
+    .brand span { color: var(--green); }
+    .header-sub {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* ── Body padding ── */
+    .body { padding: 20px 20px 0; }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+
+    /* ── Services grid ── */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .service-btn {
+      padding: 13px 6px 11px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      font-family: var(--font);
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      line-height: 1.35;
+      transition: background .12s, border-color .12s, color .12s, box-shadow .12s, transform .1s;
+      min-height: 68px;
+      box-shadow: var(--shadow-sm);
+    }
+    .service-btn i { font-size: 21px; }
+    .service-btn:hover {
+      background: var(--surface-2);
+      border-color: #B0D4C8;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    .service-btn.selected {
+      border-color: var(--green);
+      background: var(--green-soft);
+      color: var(--green-dark);
+      box-shadow: 0 0 0 3px var(--green-mid), var(--shadow-sm);
+    }
+    .service-btn.other-btn {
+      border-style: dashed;
+    }
+    .service-btn.other-btn.selected {
+      border-style: solid;
+    }
+
+    /* ── Other input ── */
+    .other-input-row {
+      display: none;
+      margin-bottom: 16px;
+    }
+    .other-input-row.visible { display: flex; }
+    .other-input-row input {
+      flex: 1;
+      padding: 10px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      font-family: var(--font);
+      font-size: 13.5px;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .other-input-row input:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-mid);
+    }
+    .other-input-row input::placeholder { color: var(--text-muted); }
+
+    /* ── Fields ── */
+    .fields-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .field input {
+      padding: 10px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      font-family: var(--mono);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-mid);
+    }
+    .field input::placeholder { color: var(--text-muted); font-size: 13px; font-family: var(--font); font-weight: 400; }
+
+    /* ── Add button ── */
+    .add-btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: var(--green);
+      color: #fff;
+      font-family: var(--font);
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 10px rgba(29,158,117,.35);
+      transition: background .12s, box-shadow .12s, transform .1s;
+    }
+    .add-btn:hover {
+      background: var(--green-dark);
+      box-shadow: 0 4px 16px rgba(29,158,117,.45);
+      transform: translateY(-1px);
+    }
+    .add-btn:active { transform: scale(0.98); }
+    .add-btn i { font-size: 18px; }
+
+    /* ── Log ── */
+    .log-section {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 14px;
+    }
+    .log-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 16px 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .log-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .count-badge {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      font-family: var(--mono);
+    }
+
+    .entry-list {
+      display: flex;
+      flex-direction: column;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .entry-list::-webkit-scrollbar { width: 4px; }
+    .entry-list::-webkit-scrollbar-track { background: transparent; }
+    .entry-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    .entry-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border-light);
+      transition: background .1s;
+      animation: slideIn .2s ease;
+    }
+    .entry-card:last-child { border-bottom: none; }
+    .entry-card:hover { background: var(--surface-2); }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .entry-info { flex: 1; min-width: 0; }
+    .entry-name {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .entry-meta {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-family: var(--mono);
+    }
+    .entry-total {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--green-dark);
+      white-space: nowrap;
+      font-family: var(--mono);
+    }
+    .entry-del {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 16px;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      border-radius: 6px;
+      transition: background .1s, color .1s;
+    }
+    .entry-del:hover { background: #FEE2E2; color: #B91C1C; }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .empty-state i { font-size: 30px; display: block; margin-bottom: 10px; opacity: .5; }
+
+    /* ── Summary bar ── */
+    .summary-bar {
+      background: var(--green-soft);
+      border: 1.5px solid #B5DECE;
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+    .summary-label {
+      font-size: 12px;
+      color: var(--green-dark);
+      font-weight: 500;
+    }
+    .summary-count {
+      font-size: 11.5px;
+      color: var(--green);
+      margin-top: 3px;
+      font-family: var(--mono);
+    }
+    .summary-total {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--green-deep);
+      font-family: var(--mono);
+      letter-spacing: -0.5px;
+    }
+
+    /* ── Export / clear ── */
+    .export-btn {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      box-shadow: var(--shadow-sm);
+      transition: background .12s, box-shadow .12s, transform .1s;
+    }
+    .export-btn i { font-size: 18px; color: var(--green); }
+    .export-btn:hover {
+      background: var(--surface-2);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .clear-btn {
+      width: 100%;
+      padding: 9px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: none;
+      font-family: var(--font);
+      font-size: 12.5px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: color .12s;
+    }
+    .clear-btn:hover { color: #B91C1C; }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: var(--border-light);
+      margin: 0 0 22px;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: var(--green-deep);
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity .25s, transform .25s;
+      pointer-events: none;
+      z-index: 999;
+      white-space: nowrap;
+      box-shadow: 0 4px 20px rgba(8,80,65,.35);
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 380px) {
+      .services-grid { grid-template-columns: repeat(2, 1fr); }
+      .body { padding: 16px 16px 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">The <span>Pulse</span></div>
+    <div class="header-sub">Log what you did → export to Excel</div>
+  </div>
+
+  <div class="body">
+
+    <!-- Service picker -->
+    <div class="section-label">Choose a service</div>
+    <div class="services-grid">
+      <button class="service-btn" data-name="Face Paint" onclick="selectService(this)">
+        <i class="ti ti-brush" aria-hidden="true"></i>Face paint
+      </button>
+      <button class="service-btn" data-name="Canvas Drawing" onclick="selectService(this)">
+        <i class="ti ti-writing" aria-hidden="true"></i>Canvas drawing
+      </button>
+      <button class="service-btn" data-name="Mirror Painting" onclick="selectService(this)">
+        <i class="ti ti-diamond" aria-hidden="true"></i>Mirror painting
+      </button>
+      <button class="service-btn" data-name="تلوين جبس" onclick="selectService(this)">
+        <i class="ti ti-layers-difference" aria-hidden="true"></i>تلوين جبس
+      </button>
+      <button class="service-btn" data-name="فوم حراري" onclick="selectService(this)">
+        <i class="ti ti-flame" aria-hidden="true"></i>فوم حراري
+      </button>
+      <button class="service-btn other-btn" data-name="other" onclick="selectService(this)">
+        <i class="ti ti-pencil-plus" aria-hidden="true"></i>Other…
+      </button>
+    </div>
+
+    <div class="other-input-row" id="otherInputRow">
+      <input type="text" id="otherInput" placeholder="Write the service name…" />
+    </div>
+
+    <!-- Price / Qty -->
+    <div class="fields-row">
+      <div class="field">
+        <label for="priceInput">Price (LE)</label>
+        <input type="number" id="priceInput" placeholder="e.g. 20" min="0" step="0.5" />
+      </div>
+      <div class="field">
+        <label for="qtyInput">Qty</label>
+        <input type="number" id="qtyInput" placeholder="1" min="1" step="1" value="1" />
+      </div>
+    </div>
+
+    <button class="add-btn" onclick="addEntry()">
+      <i class="ti ti-plus" aria-hidden="true"></i> Add to log
+    </button>
+
+    <div class="divider"></div>
+
+    <!-- Log -->
+    <div class="log-section">
+      <div class="log-header">
+        <span class="log-title">Today's log</span>
+        <span class="count-badge" id="countBadge">0 items</span>
+      </div>
+      <div class="entry-list" id="entryList">
+        <div class="empty-state">
+          <i class="ti ti-clipboard-list" aria-hidden="true"></i>
+          No entries yet.<br>Add your first service above.
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-bar">
+      <div>
+        <div class="summary-label">Total earned today</div>
+        <div class="summary-count" id="summaryCount">0 sales</div>
+      </div>
+      <div class="summary-total" id="summaryTotal">0 LE</div>
+    </div>
+
+    <!-- Actions -->
+    <button class="export-btn" onclick="exportExcel()">
+      <i class="ti ti-table-export" aria-hidden="true"></i> Export to Excel (.xlsx)
+    </button>
+    <button class="clear-btn" onclick="clearAll()">Clear all entries</button>
+
+  </div><!-- /body -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let entries = [];
+  let selectedService = '';
+
+  function selectService(btn) {
+    document.querySelectorAll('.service-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    const row = document.getElementById('otherInputRow');
+    if (btn.dataset.name === 'other') {
+      row.classList.add('visible');
+      selectedService = '';
+      setTimeout(() => document.getElementById('otherInput').focus(), 50);
+    } else {
+      row.classList.remove('visible');
+      document.getElementById('otherInput').value = '';
+      selectedService = btn.dataset.name;
+    }
+  }
+
+  function showToast(msg, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.background = isError ? '#B91C1C' : 'var(--green-deep, #085041)';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  function addEntry() {
+    const isOther = document.getElementById('otherInputRow').classList.contains('visible');
+    const svc = isOther ? document.getElementById('otherInput').value.trim() : selectedService;
+    if (!svc) { showToast(isOther ? 'Write the service name first' : 'Pick a service first', true); return; }
+    const price = parseFloat(document.getElementById('priceInput').value);
+    const qty   = parseInt(document.getElementById('qtyInput').value) || 1;
+    if (!price || price <= 0) { showToast('Enter a valid price', true); return; }
+
+    const now = new Date();
+    entries.push({
+      id:      Date.now(),
+      service: svc,
+      price,
+      qty,
+      total:   price * qty,
+      time:    now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      date:    now.toLocaleDateString('en-GB')
+    });
+
+    document.getElementById('priceInput').value = '';
+    document.getElementById('qtyInput').value   = '1';
+    renderList();
+    showToast('Added: ' + svc + ' ×' + qty);
+  }
+
+  function deleteEntry(id) {
+    entries = entries.filter(e => e.id !== id);
+    renderList();
+  }
+
+  function renderList() {
+    const list  = document.getElementById('entryList');
+    const count = entries.length;
+    document.getElementById('countBadge').textContent = count + ' item' + (count !== 1 ? 's' : '');
+
+    if (!count) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <i class="ti ti-clipboard-list" aria-hidden="true"></i>
+          No entries yet.<br>Add your first service above.
+        </div>`;
+    } else {
+      list.innerHTML = [...entries].reverse().map(e => `
+        <div class="entry-card">
+          <div class="entry-info">
+            <div class="entry-name">${e.service}</div>
+            <div class="entry-meta">${e.qty} × ${e.price.toFixed(0)} LE &nbsp;·&nbsp; ${e.time}</div>
+          </div>
+          <div class="entry-total">${e.total.toFixed(0)} LE</div>
+          <button class="entry-del" onclick="deleteEntry(${e.id})" aria-label="Delete">
+            <i class="ti ti-x" aria-hidden="true"></i>
+          </button>
+        </div>`).join('');
+    }
+
+    const total = entries.reduce((s, e) => s + e.total, 0);
+    const sales = entries.reduce((s, e) => s + e.qty,   0);
+    document.getElementById('summaryTotal').textContent = total.toFixed(0) + ' LE';
+    document.getElementById('summaryCount').textContent = sales + ' sale' + (sales !== 1 ? 's' : '');
+  }
+
+  function exportExcel() {
+    if (!entries.length) { showToast('No entries to export', true); return; }
+
+    const now        = new Date();
+    const todayLabel = now.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const todayShort = now.toLocaleDateString('en-GB').replace(/\//g, '-');
+    const grandTotal = entries.reduce((s, e) => s + e.total, 0);
+    const totalSales = entries.reduce((s, e) => s + e.qty,   0);
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([]);
+
+    const teal      = { fgColor: { rgb: '1D9E75' } };
+    const lightGreen = { fgColor: { rgb: 'E1F5EE' } };
+    const headerFont = { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 };
+    const summaryFont = { bold: true, color: { rgb: '085041' }, sz: 13 };
+    const center    = { horizontal: 'center', vertical: 'center' };
+    const right     = { horizontal: 'right',  vertical: 'center' };
+
+    const rows = [];
+    rows.push(['The Pulse — Daily Sales Report', '', '', '', '', '']);
+    rows.push(['Date:', todayLabel, '', '', '', '']);
+    rows.push(['', '', '', '', '', '']);
+    rows.push(['#', 'Time', 'Service', 'Price (LE)', 'Qty', 'Total (LE)']);
+    entries.forEach((e, i) => rows.push([i + 1, e.time, e.service, e.price, e.qty, e.total]));
+    rows.push(['', '', '', '', '', '']);
+    rows.push(['', '', '', 'Total sales:',  totalSales, '']);
+    rows.push(['', '', '', 'Total earned:', '',          grandTotal]);
+
+    XLSX.utils.sheet_add_aoa(ws, rows, { origin: 'A1' });
+
+    // Title style
+    ws['A1'].s = { font: { bold: true, sz: 16, color: { rgb: '085041' } }, alignment: center };
+    if (ws['A2']) ws['A2'].s = { font: { bold: true, sz: 11, color: { rgb: '5DCAA5' } } };
+    if (ws['B2']) ws['B2'].s = { font: { sz: 11, color: { rgb: '444441' } } };
+
+    // Header row styles
+    const headerRow = 4;
+    ['A','B','C','D','E','F'].forEach(col => {
+      const addr = col + headerRow;
+      if (!ws[addr]) ws[addr] = { t: 's', v: '' };
+      ws[addr].s = { fill: teal, font: headerFont, alignment: center };
+    });
+
+    // Data row styles
+    for (let i = 0; i < entries.length; i++) {
+      const rowNum = headerRow + 1 + i;
+      const bg = i % 2 === 0 ? { fgColor: { rgb: 'FFFFFF' } } : { fgColor: { rgb: 'F4FAF7' } };
+      ['A','B','C','D','E','F'].forEach(col => {
+        const addr = col + rowNum;
+        if (!ws[addr]) ws[addr] = { t: 's', v: '' };
+        ws[addr].s = { fill: bg, font: { sz: 11 }, alignment: col === 'C' ? { vertical: 'center' } : center };
+      });
+    }
+
+    // Summary row styles
+    const R  = rows.length;
+    const s1 = R - 1;
+    const s2 = R;
+    ['D','E','F'].forEach(col => {
+      const a1 = col + s1, a2 = col + s2;
+      if (!ws[a1]) ws[a1] = { t: 's', v: '' };
+      if (!ws[a2]) ws[a2] = { t: 's', v: '' };
+      ws[a1].s = { fill: lightGreen, font: summaryFont, alignment: right };
+      ws[a2].s = { fill: lightGreen, font: summaryFont, alignment: right };
+    });
+
+    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
+    ws['!cols']   = [{ wch: 4 }, { wch: 9 }, { wch: 22 }, { wch: 14 }, { wch: 8 }, { wch: 13 }];
+    ws['!rows']   = [{ hpt: 28 }, { hpt: 18 }];
+
+    XLSX.utils.book_append_sheet(wb, ws, todayShort);
+    XLSX.writeFile(wb, `the-pulse-${todayShort}.xlsx`);
+    showToast('Exported! ' + grandTotal.toFixed(0) + ' LE total');
+  }
+
+  function clearAll() {
+    if (!entries.length) return;
+    if (confirm('Clear all ' + entries.length + ' entries?')) {
+      entries = [];
+      renderList();
+      showToast('All entries cleared');
+    }
+  }
+
+  // Allow Enter key in price/qty fields
+  document.addEventListener('DOMContentLoaded', () => {
+    ['priceInput', 'qtyInput', 'otherInput'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
+    });
+  });
+</script>
+</body>
+</html>
