@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
     :root {
@@ -79,11 +78,6 @@
       letter-spacing: -0.4px;
     }
     .brand span { color: var(--green); }
-    .header-sub {
-      font-size: 12.5px;
-      color: var(--text-muted);
-      font-weight: 400;
-    }
 
     /* ── Body padding ── */
     .body { padding: 20px 20px 0; }
@@ -97,6 +91,42 @@
       letter-spacing: 0.08em;
       margin-bottom: 10px;
     }
+
+    /* ── Salesperson dropdown ── */
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .field select {
+      padding: 10px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+      transition: border-color .15s, box-shadow .15s;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394B0A6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+      cursor: pointer;
+      overflow-y: auto;
+    }
+    .field select:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-mid);
+    }
+    .field select option { font-size: 14px; padding: 6px; }
 
     /* ── Services grid ── */
     .services-grid {
@@ -140,12 +170,8 @@
       color: var(--green-dark);
       box-shadow: 0 0 0 3px var(--green-mid), var(--shadow-sm);
     }
-    .service-btn.other-btn {
-      border-style: dashed;
-    }
-    .service-btn.other-btn.selected {
-      border-style: solid;
-    }
+    .service-btn.other-btn { border-style: dashed; }
+    .service-btn.other-btn.selected { border-style: solid; }
 
     /* ── Other input ── */
     .other-input-row {
@@ -172,22 +198,15 @@
     }
     .other-input-row input::placeholder { color: var(--text-muted); }
 
-    /* ── Fields ── */
+    /* ── Price/Qty fields ── */
     .fields-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
       margin-bottom: 16px;
     }
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-    }
-    .field input {
+    .fields-row .field { margin-bottom: 0; }
+    .fields-row .field input {
       padding: 10px 13px;
       border: 1.5px solid var(--border);
       border-radius: var(--radius-md);
@@ -197,14 +216,15 @@
       font-weight: 500;
       color: var(--text-primary);
       box-shadow: var(--shadow-sm);
+      width: 100%;
       transition: border-color .15s, box-shadow .15s;
     }
-    .field input:focus {
+    .fields-row .field input:focus {
       outline: none;
       border-color: var(--green);
       box-shadow: 0 0 0 3px var(--green-mid);
     }
-    .field input::placeholder { color: var(--text-muted); font-size: 13px; font-family: var(--font); font-weight: 400; }
+    .fields-row .field input::placeholder { color: var(--text-muted); font-size: 13px; font-family: var(--font); font-weight: 400; }
 
     /* ── Add button ── */
     .add-btn {
@@ -233,6 +253,7 @@
     }
     .add-btn:active { transform: scale(0.98); }
     .add-btn i { font-size: 18px; }
+    .add-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
 
     /* ── Log ── */
     .log-section {
@@ -308,6 +329,12 @@
       margin-top: 2px;
       font-family: var(--mono);
     }
+    .entry-seller {
+      font-size: 11px;
+      color: var(--green-dark);
+      margin-top: 2px;
+      font-weight: 500;
+    }
     .entry-total {
       font-size: 14px;
       font-weight: 600;
@@ -337,64 +364,14 @@
     }
     .empty-state i { font-size: 30px; display: block; margin-bottom: 10px; opacity: .5; }
 
-    /* ── Summary bar ── */
-    .summary-bar {
-      background: var(--green-soft);
-      border: 1.5px solid #B5DECE;
-      border-radius: var(--radius-lg);
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-      box-shadow: var(--shadow-sm);
-    }
-    .summary-label {
-      font-size: 12px;
-      color: var(--green-dark);
-      font-weight: 500;
-    }
-    .summary-count {
-      font-size: 11.5px;
-      color: var(--green);
-      margin-top: 3px;
-      font-family: var(--mono);
-    }
-    .summary-total {
-      font-size: 26px;
-      font-weight: 600;
-      color: var(--green-deep);
-      font-family: var(--mono);
-      letter-spacing: -0.5px;
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: var(--border-light);
+      margin: 0 0 22px;
     }
 
-    /* ── Export / clear ── */
-    .export-btn {
-      width: 100%;
-      padding: 12px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-md);
-      background: var(--surface);
-      font-family: var(--font);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      color: var(--text-primary);
-      margin-bottom: 8px;
-      box-shadow: var(--shadow-sm);
-      transition: background .12s, box-shadow .12s, transform .1s;
-    }
-    .export-btn i { font-size: 18px; color: var(--green); }
-    .export-btn:hover {
-      background: var(--surface-2);
-      box-shadow: var(--shadow-md);
-      transform: translateY(-1px);
-    }
-
+    /* ── Clear button ── */
     .clear-btn {
       width: 100%;
       padding: 9px;
@@ -409,11 +386,32 @@
     }
     .clear-btn:hover { color: #B91C1C; }
 
-    /* ── Divider ── */
-    .divider {
-      height: 1px;
-      background: var(--border-light);
-      margin: 0 0 22px;
+    /* ── Sync status ── */
+    .sync-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      min-height: 18px;
+      font-family: var(--mono);
+    }
+    .sync-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+    .sync-dot.syncing { background: #F59E0B; animation: pulse 1s infinite; }
+    .sync-dot.ok      { background: var(--green); }
+    .sync-dot.err     { background: #EF4444; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .4; }
     }
 
     /* ── Toast ── */
@@ -457,6 +455,19 @@
 
   <div class="body">
 
+    <!-- Salesperson dropdown -->
+    <div class="field">
+      <label for="sellerSelect">Salesperson</label>
+      <select id="sellerSelect" size="1">
+        <option value="" disabled selected>— Select your name —</option>
+        <option value="Jehad">Jehad</option>
+        <option value="Toka">Toka</option>
+        <option value="Rawan">Rawan</option>
+        <option value="Habiba">Habiba</option>
+        <option value="Fayrouz">Fayrouz</option>
+      </select>
+    </div>
+
     <!-- Service picker -->
     <div class="section-label">Choose a service</div>
     <div class="services-grid">
@@ -496,7 +507,13 @@
       </div>
     </div>
 
-    <button class="add-btn" onclick="addEntry()">
+    <!-- Sync status -->
+    <div class="sync-status" id="syncStatus">
+      <span class="sync-dot" id="syncDot"></span>
+      <span id="syncText"></span>
+    </div>
+
+    <button class="add-btn" id="addBtn" onclick="addEntry()">
       <i class="ti ti-plus" aria-hidden="true"></i> Add to log
     </button>
 
@@ -516,19 +533,6 @@
       </div>
     </div>
 
-    <!-- Summary -->
-    <div class="summary-bar">
-      <div>
-        <div class="summary-label">Total earned today</div>
-        <div class="summary-count" id="summaryCount">0 sales</div>
-      </div>
-      <div class="summary-total" id="summaryTotal">0 LE</div>
-    </div>
-
-    <!-- Actions -->
-    <button class="export-btn" onclick="exportExcel()">
-      <i class="ti ti-table-export" aria-hidden="true"></i> Export to Excel (.xlsx)
-    </button>
     <button class="clear-btn" onclick="clearAll()">Clear all entries</button>
 
   </div><!-- /body -->
@@ -537,16 +541,17 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  let entries = JSON.parse(
-  localStorage.getItem('pulseEntries') || '[]'
-);
-function saveEntries() {
-  localStorage.setItem(
-    'pulseEntries',
-    JSON.stringify(entries)
-  );
-}
+  // ── CONFIGURATION ──────────────────────────────────────────────
+  // Paste your Google Apps Script Web App URL here:
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzVaIVUpTSkPQQqYeSWe9bgG5nUi71TSCU5U2fycGgAKCaqWcyHTSia2lo8lr43SMutsw/exec';
+  // ───────────────────────────────────────────────────────────────
+
+  let entries = JSON.parse(localStorage.getItem('pulseEntries') || '[]');
   let selectedService = '';
+
+  function saveEntries() {
+    localStorage.setItem('pulseEntries', JSON.stringify(entries));
+  }
 
   function selectService(btn) {
     document.querySelectorAll('.service-btn').forEach(b => b.classList.remove('selected'));
@@ -571,38 +576,83 @@ function saveEntries() {
     setTimeout(() => t.classList.remove('show'), 2400);
   }
 
+  function setSyncStatus(state, text) {
+    const dot  = document.getElementById('syncDot');
+    const span = document.getElementById('syncText');
+    dot.className = 'sync-dot' + (state ? ' ' + state : '');
+    span.textContent = text;
+  }
+
+  async function sendToSheet(entry) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      console.warn('Apps Script URL not configured.');
+      return;
+    }
+    setSyncStatus('syncing', 'Saving to sheet…');
+    try {
+      const params = new URLSearchParams({
+        seller:  entry.seller,
+        service: entry.service,
+        price:   entry.price,
+        qty:     entry.qty,
+        total:   entry.total,
+        time:    entry.time,
+        date:    entry.date
+      });
+      const res = await fetch(APPS_SCRIPT_URL + '?' + params.toString(), {
+        method: 'GET',
+        mode: 'no-cors'   // Apps Script with no-cors; response will be opaque but row is added
+      });
+      setSyncStatus('ok', 'Saved to Google Sheet ✓');
+      setTimeout(() => setSyncStatus('', ''), 3000);
+    } catch (err) {
+      setSyncStatus('err', 'Sheet sync failed');
+      console.error('Sync error:', err);
+      setTimeout(() => setSyncStatus('', ''), 4000);
+    }
+  }
+
   function addEntry() {
+    const seller = document.getElementById('sellerSelect').value;
+    if (!seller) { showToast('Select your name first', true); return; }
+
     const isOther = document.getElementById('otherInputRow').classList.contains('visible');
     const svc = isOther ? document.getElementById('otherInput').value.trim() : selectedService;
     if (!svc) { showToast(isOther ? 'Write the service name first' : 'Pick a service first', true); return; }
+
     const price = parseFloat(document.getElementById('priceInput').value);
     const qty   = parseInt(document.getElementById('qtyInput').value) || 1;
     if (!price || price <= 0) { showToast('Enter a valid price', true); return; }
 
     const now = new Date();
-   entries.push({
-  id:      Date.now(),
-  service: svc,
-  price,
-  qty,
-  total:   price * qty,
-  time:    now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-  date:    now.toLocaleDateString('en-GB')
-});
+    const entry = {
+      id:      Date.now(),
+      seller,
+      service: svc,
+      price,
+      qty,
+      total:   price * qty,
+      time:    now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      date:    now.toLocaleDateString('en-GB')
+    };
 
-saveEntries();
+    entries.push(entry);
+    saveEntries();
 
     document.getElementById('priceInput').value = '';
     document.getElementById('qtyInput').value   = '1';
     renderList();
     showToast('Added: ' + svc + ' ×' + qty);
+
+    // Send to Google Sheet
+    sendToSheet(entry);
   }
 
   function deleteEntry(id) {
-  entries = entries.filter(e => e.id !== id);
-  saveEntries();
-  renderList();
-}
+    entries = entries.filter(e => e.id !== id);
+    saveEntries();
+    renderList();
+  }
 
   function renderList() {
     const list  = document.getElementById('entryList');
@@ -621,6 +671,7 @@ saveEntries();
           <div class="entry-info">
             <div class="entry-name">${e.service}</div>
             <div class="entry-meta">${e.qty} × ${e.price.toFixed(0)} LE &nbsp;·&nbsp; ${e.time}</div>
+            <div class="entry-seller">👤 ${e.seller}</div>
           </div>
           <div class="entry-total">${e.total.toFixed(0)} LE</div>
           <button class="entry-del" onclick="deleteEntry(${e.id})" aria-label="Delete">
@@ -628,114 +679,25 @@ saveEntries();
           </button>
         </div>`).join('');
     }
-
-    const total = entries.reduce((s, e) => s + e.total, 0);
-    const sales = entries.reduce((s, e) => s + e.qty,   0);
-    document.getElementById('summaryTotal').textContent = total.toFixed(0) + ' LE';
-    document.getElementById('summaryCount').textContent = sales + ' sale' + (sales !== 1 ? 's' : '');
   }
 
-  function exportExcel() {
-    if (!entries.length) { showToast('No entries to export', true); return; }
-
-    const now        = new Date();
-    const todayLabel = now.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    const todayShort = now.toLocaleDateString('en-GB').replace(/\//g, '-');
-    const grandTotal = entries.reduce((s, e) => s + e.total, 0);
-    const totalSales = entries.reduce((s, e) => s + e.qty,   0);
-
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet([]);
-
-    const teal      = { fgColor: { rgb: '1D9E75' } };
-    const lightGreen = { fgColor: { rgb: 'E1F5EE' } };
-    const headerFont = { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 };
-    const summaryFont = { bold: true, color: { rgb: '085041' }, sz: 13 };
-    const center    = { horizontal: 'center', vertical: 'center' };
-    const right     = { horizontal: 'right',  vertical: 'center' };
-
-    const rows = [];
-    rows.push(['The Pulse — Daily Sales Report', '', '', '', '', '']);
-    rows.push(['Date:', todayLabel, '', '', '', '']);
-    rows.push(['', '', '', '', '', '']);
-    rows.push(['#', 'Time', 'Service', 'Price (LE)', 'Qty', 'Total (LE)']);
-    entries.forEach((e, i) => rows.push([i + 1, e.time, e.service, e.price, e.qty, e.total]));
-    rows.push(['', '', '', '', '', '']);
-    rows.push(['', '', '', 'Total sales:',  totalSales, '']);
-    rows.push(['', '', '', 'Total earned:', '',          grandTotal]);
-
-    XLSX.utils.sheet_add_aoa(ws, rows, { origin: 'A1' });
-
-    // Title style
-    ws['A1'].s = { font: { bold: true, sz: 16, color: { rgb: '085041' } }, alignment: center };
-    if (ws['A2']) ws['A2'].s = { font: { bold: true, sz: 11, color: { rgb: '5DCAA5' } } };
-    if (ws['B2']) ws['B2'].s = { font: { sz: 11, color: { rgb: '444441' } } };
-
-    // Header row styles
-    const headerRow = 4;
-    ['A','B','C','D','E','F'].forEach(col => {
-      const addr = col + headerRow;
-      if (!ws[addr]) ws[addr] = { t: 's', v: '' };
-      ws[addr].s = { fill: teal, font: headerFont, alignment: center };
-    });
-
-    // Data row styles
-    for (let i = 0; i < entries.length; i++) {
-      const rowNum = headerRow + 1 + i;
-      const bg = i % 2 === 0 ? { fgColor: { rgb: 'FFFFFF' } } : { fgColor: { rgb: 'F4FAF7' } };
-      ['A','B','C','D','E','F'].forEach(col => {
-        const addr = col + rowNum;
-        if (!ws[addr]) ws[addr] = { t: 's', v: '' };
-        ws[addr].s = { fill: bg, font: { sz: 11 }, alignment: col === 'C' ? { vertical: 'center' } : center };
-      });
+  function clearAll() {
+    if (!entries.length) return;
+    if (confirm('Clear all ' + entries.length + ' entries?')) {
+      entries = [];
+      saveEntries();
+      renderList();
+      showToast('All entries cleared');
     }
-
-    // Summary row styles
-    const R  = rows.length;
-    const s1 = R - 1;
-    const s2 = R;
-    ['D','E','F'].forEach(col => {
-      const a1 = col + s1, a2 = col + s2;
-      if (!ws[a1]) ws[a1] = { t: 's', v: '' };
-      if (!ws[a2]) ws[a2] = { t: 's', v: '' };
-      ws[a1].s = { fill: lightGreen, font: summaryFont, alignment: right };
-      ws[a2].s = { fill: lightGreen, font: summaryFont, alignment: right };
-    });
-
-    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
-    ws['!cols']   = [{ wch: 4 }, { wch: 9 }, { wch: 22 }, { wch: 14 }, { wch: 8 }, { wch: 13 }];
-    ws['!rows']   = [{ hpt: 28 }, { hpt: 18 }];
-
-    XLSX.utils.book_append_sheet(wb, ws, todayShort);
-    XLSX.writeFile(wb, `the-pulse-${todayShort}.xlsx`);
-    showToast('Exported! ' + grandTotal.toFixed(0) + ' LE total');
   }
 
- function clearAll() {
-  if (!entries.length) return;
-
-  if (confirm('Clear all ' + entries.length + ' entries?')) {
-    entries = [];
-    saveEntries();
+  document.addEventListener('DOMContentLoaded', () => {
+    ['priceInput', 'qtyInput', 'otherInput'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
+    });
     renderList();
-    showToast('All entries cleared');
-  }
-}
-
-  // Allow Enter key in price/qty fields
- document.addEventListener('DOMContentLoaded', () => {
-  ['priceInput', 'qtyInput', 'otherInput'].forEach(id => {
-    const el = document.getElementById(id);
-
-    if (el) {
-      el.addEventListener('keydown', e => {
-        if (e.key === 'Enter') addEntry();
-      });
-    }
   });
-
-  renderList();
-});
 </script>
 </body>
 </html>
